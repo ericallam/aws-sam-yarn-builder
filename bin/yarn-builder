@@ -1,0 +1,195 @@
+#!/usr/bin/env ruby
+
+require "bundler"
+Bundler.require
+
+require "active_support/core_ext/hash"
+require "fileutils"
+
+opts = Slop.parse do |o|
+  o.string "-f", "--functions-source", "path to the functions to build", default: "./src"
+  o.string "-l", "--dependencies-source", "path to the dependencies to build", default: "./lib"
+  o.string "-d", "--destination", "path to use for the output of the build process", default: "./deploy"
+  o.string "-t", "--template-file", "path to the SAM template file", default: "./template.yml"
+  o.bool "-p", "--template-only", "set this to true to only build the template file", default: false
+  o.bool "-c", "--clean", "cleanup the tmp directory when finished"
+
+  o.on "--help" do
+    puts o
+    exit
+  end
+end
+
+package_files = Dir[File.join(File.expand_path(opts[:functions_source]), "*", "package.json")]
+dependency_package_files = Dir[File.join(File.expand_path(opts[:dependencies_source]), "*", "package.json")]
+
+class Package
+  def self.extract_from_file!(file_path)
+    new file_path, JSON.parse(File.read(file_path))
+  end
+
+  def initialize(path, contents)
+    self.path = path
+    self.contents = contents.with_indifferent_access
+  end
+
+  def name
+    contents[:name]
+  end
+
+  def version
+    contents[:version]
+  end
+
+  def pack(output)
+    change_to_directory do
+      `npm pack`
+    end
+
+    FileUtils.mv packaged_tarball_path, output
+
+    Dir.chdir output do
+      `tar zxvf #{packed_tarball_name}`
+
+      FileUtils.mkdir_p name
+      File.rename "package", name
+
+      FileUtils.rm packed_tarball_name
+    end
+
+    package_json_path = File.join(output, name, "package.json")
+
+    File.open(package_json_path, "w+") do |file|
+      file << JSON.pretty_generate(overrite_local_dependencies)
+    end
+  end
+
+  def build(output, tmp_directory)
+    tmp_package_path = File.join(tmp_directory, name)
+
+    yarn_lock_path = File.join(base_path, "yarn.lock")
+
+    FileUtils.cp yarn_lock_path, tmp_package_path
+
+    Dir.chdir tmp_package_path do
+      puts "Yarn Installing for #{name}"
+
+      `yarn install --ignore-scripts --production --pure-lockfile`
+    end
+
+    deploy_package_path = File.join(output, name)
+
+    FileUtils.rm_rf deploy_package_path
+    FileUtils.mv tmp_package_path, deploy_package_path
+
+    package_json_path = File.join(deploy_package_path, "package.json")
+
+    File.open(package_json_path, "w+") do |file|
+      file << JSON.pretty_generate(contents)
+    end
+  end
+
+  protected
+
+  attr_accessor :contents, :path
+
+  def overrite_local_dependencies
+    result = Marshal.load(Marshal.dump(contents))
+
+    result[:dependencies] = contents[:dependencies].inject({}) do |deps, (name, version)|
+      if version.start_with?("file:")
+        deps[name] = "file:../#{name}"
+      else
+        deps[name] = version
+      end
+
+      deps
+    end
+
+    result[:devDependencies] = contents[:devDependencies].inject({}) do |deps, (name, version)|
+      if version.start_with?("file:")
+        deps[name] = "file:../#{name}"
+      else
+        deps[name] = version
+      end
+
+      deps
+    end
+
+    result
+  end
+
+  def change_to_directory(&block)
+    Dir.chdir base_path, &block
+  end
+
+  def base_path
+    File.dirname(path)
+  end
+
+  def packaged_tarball_path
+    File.join(base_path, packed_tarball_name)
+  end
+
+  def packed_tarball_name
+    packed_name + ".tgz"
+  end
+
+  def packed_name
+    [name.gsub(/\//, "-").gsub(/@/, ""), version].join("-")
+  end
+end
+
+class SAMTemplate
+  def self.extract_from_file!(file_path)
+    new file_path, File.read(file_path)
+  end
+
+  def initialize(path, contents)
+    self.path = path
+    self.contents = contents
+  end
+
+  def write_to_output(output)
+    basename = File.basename(path)
+    dirname = File.basename(output)
+
+    File.open(File.join(output, basename), "w+") do |file|
+      file << contents.gsub(/\.\/src\/(.+)\/?/) do |_|
+        "./#{$1}"
+      end
+    end
+  end
+
+  protected
+
+  attr_accessor :contents, :path
+end
+
+template = SAMTemplate.extract_from_file!(File.expand_path(opts[:template_file]))
+
+DESTINATION_DIR = File.expand_path(opts[:destination])
+DESTINATION_TMP_DIR = File.join(DESTINATION_DIR, "tmp")
+
+template.write_to_output(DESTINATION_DIR)
+
+if !opts.template_only?
+  lambdas = package_files.collect { |file| Package.extract_from_file!(file) }
+  dependencies = dependency_package_files.collect { |file| Package.extract_from_file!(file) }
+
+  FileUtils.rm_rf(DESTINATION_TMP_DIR)
+  FileUtils.mkdir_p(DESTINATION_TMP_DIR)
+
+  dependencies.each do |d|
+    d.pack(DESTINATION_TMP_DIR)
+  end
+
+  lambdas.each do |d|
+    d.pack(DESTINATION_TMP_DIR)
+    d.build(DESTINATION_DIR, DESTINATION_TMP_DIR)
+  end
+end
+
+if opts.clean?
+  FileUtils.rm_rf(DESTINATION_TMP_DIR)
+end

@@ -3,6 +3,7 @@
 require "bundler"
 Bundler.require
 
+require "slop"
 require "active_support/core_ext/hash"
 require "fileutils"
 

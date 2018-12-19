@@ -6,6 +6,7 @@ Bundler.require
 require "slop"
 require "active_support/core_ext/hash"
 require "fileutils"
+require "json"
 
 opts = Slop.parse do |o|
   o.string "-f", "--functions-source", "path to the functions to build", default: "./src"

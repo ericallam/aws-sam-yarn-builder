@@ -58,10 +58,6 @@ module AwsSamYarnBuilder
       @dependencies ||= contents[:dependencies].map { |name, version| Dependency.new(self, name, version) }
     end
 
-    def dev_dependencies
-      @dev_dependencies ||= contents[:devDependencies].map { |name, version| Dependency.new(self, name, version) }
-    end
-
     def has_sam_prebuild_script?
       contents[:scripts].present? && contents[:scripts]["sam:prebuild"].present?
     end
@@ -135,15 +131,7 @@ module AwsSamYarnBuilder
         deps
       end
 
-      result[:devDependencies] = contents[:devDependencies].inject({}) do |deps, (name, version)|
-        if version.start_with?("file:")
-          deps[name] = "file:../#{name}"
-        else
-          deps[name] = version
-        end
-
-        deps
-      end
+      result[:devDependencies] = {}
 
       result
     end

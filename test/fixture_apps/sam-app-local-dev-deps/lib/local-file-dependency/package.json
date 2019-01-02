@@ -1,0 +1,16 @@
+{
+  "name": "local-file-dependency",
+  "version": "1.0.0",
+  "description": "Common code shared between functions",
+  "main": "index.js",
+  "repository": "https://github.com/ericallam/aws-sam-yarn-builder",
+  "author": "Eric Allam",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {},
+  "files": [
+    "index.js"
+  ]
+}

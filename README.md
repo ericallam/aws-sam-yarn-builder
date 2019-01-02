@@ -6,6 +6,10 @@ Supports local file dependencies, and matches the `sam build` command output so 
 
 **NOTE:** Currently _does not_ support building using a container e.g. `sam build --container`
 
+## New Features:
+
+- Specify commands to run before building in a function by including a `sam:prebuild` script in the `package.json`.
+
 ## Installation
 
 AWS SAM Yarn Builder is a ruby gem, so you can install it using this command:

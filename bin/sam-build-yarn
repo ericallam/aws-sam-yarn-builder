@@ -1,26 +1,12 @@
 #!/usr/bin/env ruby
 
-require "bundler"
-Bundler.require
+require "bundler/setup"
+require "aws_sam_yarn_builder"
 
-require "slop"
-require "active_support/core_ext/hash"
-require "fileutils"
-require "json"
+opts = AwsSamYarnBuilder::OptionParser.parse!
 
-opts = Slop.parse do |o|
-  o.string "-f", "--functions-source", "path to the functions to build", default: "./src"
-  o.string "-l", "--dependencies-source", "path to the dependencies to build", default: "./lib"
-  o.string "-d", "--destination", "path to use for the output of the build process", default: "./deploy"
-  o.string "-t", "--template-file", "path to the SAM template file", default: "./template.yml"
-  o.bool "-p", "--template-only", "set this to true to only build the template file", default: false
-  o.bool "-c", "--clean", "cleanup the tmp directory when finished"
-
-  o.on "--help" do
-    puts o
-    exit
-  end
-end
+builder = AwsSamYarnBuilder::Build.new opts
+builder.build!
 
 package_files = Dir[File.join(File.expand_path(opts[:functions_source]), "*", "package.json")]
 dependency_package_files = Dir[File.join(File.expand_path(opts[:dependencies_source]), "*", "package.json")]

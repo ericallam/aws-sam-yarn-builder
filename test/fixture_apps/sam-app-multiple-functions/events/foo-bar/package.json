@@ -1,0 +1,19 @@
+{
+  "name": "foo_bar",
+  "version": "1.0.0",
+  "description": "hello world sample for NodeJS",
+  "main": "src/index.js",
+  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {
+    "local-file-dependency": "file:../../lib/local-file-dependency"
+  },
+  "scripts": {
+    "test": "mocha tests/unit/"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.1.1"
+  }
+}

@@ -1,7 +1,10 @@
+lib = File.expand_path("../lib", __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require "aws_sam_yarn_builder/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "aws-sam-yarn-builder"
-  spec.version = "0.1.0"
+  spec.name = "aws_sam_yarn_builder"
+  spec.version = AwsSamYarnBuilder::VERSION
   spec.authors = ["Eric Allam"]
   spec.email = ["eric.allam@solvehq.com"]
 
@@ -26,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
   spec.add_dependency "slop", "~> 4.6.0"
-  spec.add_dependency "activesupport", "~> 5.2.1"
+  spec.add_dependency "activesupport", "~> 5.2.2"
 
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"

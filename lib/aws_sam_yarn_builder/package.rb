@@ -62,8 +62,13 @@ module AwsSamYarnBuilder
       @dev_dependencies ||= contents[:devDependencies].map { |name, version| Dependency.new(self, name, version) }
     end
 
+    def has_sam_prebuild_script?
+      contents[:scripts].present? && contents[:scripts]["sam:prebuild"].present?
+    end
+
     def pack(output)
       change_to_directory do
+        execute_command("yarn run sam:prebuild") if has_sam_prebuild_script?
         execute_command("yarn pack")
       end
 
@@ -164,6 +169,10 @@ module AwsSamYarnBuilder
     end
 
     def execute_command(command)
+      if !command
+        return
+      end
+
       system command
     end
   end

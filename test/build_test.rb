@@ -31,6 +31,32 @@ class BuildTest < Minitest::Test
     assert File.exist?(fixture_app_path("sam-app/.aws-sam/build/HelloWorldFunction/node_modules/local-file-dependency/package.json"))
   end
 
+  def test_prebuild_hook
+    opts = {
+      destination: fixture_app_path("sam-app-build-hooks/.aws-sam"),
+      template_file: fixture_app_path("sam-app-build-hooks/template.yml"),
+    }
+
+    builder = AwsSamYarnBuilder::Build.new opts
+    builder.build!
+
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/template.yaml"))
+
+    built_template = YAML.load(File.read(fixture_app_path("sam-app-build-hooks/.aws-sam/build/template.yaml")))
+
+    hello_world_resource = built_template["Resources"]["HelloWorldFunction"]
+
+    assert_equal "./HelloWorldFunction", hello_world_resource["Properties"]["CodeUri"]
+
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction"))
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/dist/app.js"))
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/package.json"))
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/yarn.lock"))
+    assert !File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/tests/unit/test-handler.js"))
+    assert !File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/src/app.ts"))
+    assert File.exist?(fixture_app_path("sam-app-build-hooks/.aws-sam/build/HelloWorldFunction/node_modules/local-file-dependency/package.json"))
+  end
+
   def test_building_twice
     opts = {
       destination: fixture_app_path("sam-app/.aws-sam"),

@@ -20,4 +20,18 @@ class TemplateTest < Minitest::Test
     assert_equal "./src/hello-world", function.path
     assert_equal "HelloWorldFunction", function.name
   end
+
+  def test_write_to_output
+    template = AwsSamYarnBuilder::Template.extract_from_file!("./test/fixture_apps/sam-app/template.yml")
+
+    FileUtils.mkdir_p "./test/fixture_apps/sam-app/.aws-sam/build"
+
+    template.write_to_output("./test/fixture_apps/sam-app/.aws-sam/build")
+
+    output_template = File.read("./test/fixture_apps/sam-app/.aws-sam/build/template.yaml")
+
+    output_document = YAML.load output_template
+
+    assert_equal "./HelloWorldFunction", output_document["Resources"]["HelloWorldFunction"]["Properties"]["CodeUri"]
+  end
 end

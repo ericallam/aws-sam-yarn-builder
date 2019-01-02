@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    aws_sam_yarn_builder (0.1.1)
+    aws_sam_yarn_builder (0.1.2)
       activesupport (~> 5.2.2)
       slop (~> 4.6.0)
 

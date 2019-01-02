@@ -31,7 +31,7 @@ module AwsSamYarnBuilder
 
     def write_to_output(output)
       File.open(File.join(output, "template.yaml"), "w+") do |file|
-        file << YAML.dump(document_with_transformed_function_paths)
+        file << contents_with_transformed_function_paths
       end
     end
 
@@ -51,14 +51,14 @@ module AwsSamYarnBuilder
       @document ||= YAML.load(contents)
     end
 
-    def document_with_transformed_function_paths
-      transformed_document = Marshal.load(Marshal.dump(document))
-
-      raw_function_resources.each do |name, resource|
-        transformed_document["Resources"][name]["Properties"]["CodeUri"] = "./#{name}"
+    def contents_with_transformed_function_paths
+      contents.gsub(/CodeUri:\s*(.*)/) do |_|
+        "CodeUri: ./#{find_function_name_for_code_uri($1)}"
       end
+    end
 
-      transformed_document
+    def find_function_name_for_code_uri(code_uri)
+      raw_function_resources.detect { |name, options| options["Properties"]["CodeUri"] == code_uri }.first
     end
 
     def raw_resources

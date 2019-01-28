@@ -54,6 +54,10 @@ module AwsSamYarnBuilder
       contents[:version]
     end
 
+    def org?
+      name.include?("/")
+    end
+
     def dependencies
       @dependencies ||= contents[:dependencies].map { |name, version| Dependency.new(self, name, version) }
     end
@@ -121,11 +125,11 @@ module AwsSamYarnBuilder
     def overrite_local_dependencies
       result = Marshal.load(Marshal.dump(contents))
 
-      result[:dependencies] = contents[:dependencies].inject({}) do |deps, (name, version)|
+      result[:dependencies] = contents[:dependencies].inject({}) do |deps, (depName, version)|
         if version.start_with?("file:")
-          deps[name] = "file:../#{name}"
+          deps[depName] = "file:#{org? ? "../" : ""}../#{depName}"
         else
-          deps[name] = version
+          deps[depName] = version
         end
 
         deps

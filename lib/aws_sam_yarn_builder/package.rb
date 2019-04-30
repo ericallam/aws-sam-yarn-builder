@@ -107,6 +107,7 @@ module AwsSamYarnBuilder
 
       FileUtils.rm_rf deploy_package_path
       FileUtils.mv tmp_package_path, deploy_package_path
+      FileUtils.rm_rf File.join(deploy_package_path, "node_modules", "@types")
 
       package_json_path = File.join(deploy_package_path, "package.json")
 

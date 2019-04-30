@@ -23,7 +23,7 @@ module AwsSamYarnBuilder
         package.build function.name, destination_dir, destination_staging_dir
       end
 
-      template.write_to_output(destination_dir)
+      template.write_to_output(destination_dir, template_base_dir)
 
       FileUtils.rm_rf(destination_staging_dir)
     end

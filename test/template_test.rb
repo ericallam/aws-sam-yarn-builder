@@ -1,5 +1,6 @@
 require "minitest/autorun"
 require "aws_sam_yarn_builder"
+require "pry"
 
 class TemplateTest < Minitest::Test
   def test_serverless_transform
@@ -26,12 +27,13 @@ class TemplateTest < Minitest::Test
 
     FileUtils.mkdir_p "./test/fixture_apps/sam-app/.aws-sam/build"
 
-    template.write_to_output("./test/fixture_apps/sam-app/.aws-sam/build")
+    template.write_to_output("./test/fixture_apps/sam-app/.aws-sam/build", File.expand_path("./test/fixture_apps/sam-app"))
 
     output_template = File.read("./test/fixture_apps/sam-app/.aws-sam/build/template.yaml")
 
     output_document = YAML.load output_template
 
     assert_equal "./HelloWorldFunction", output_document["Resources"]["HelloWorldFunction"]["Properties"]["CodeUri"]
+    assert_equal File.read("./test/fixture_apps/sam-app/step-functions/hello-world.json"), output_document["Resources"]["HelloWorldStepFunction"]["Properties"]["DefinitionString"]
   end
 end

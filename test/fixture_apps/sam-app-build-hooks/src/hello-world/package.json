@@ -14,7 +14,7 @@
     "sam:prebuild": "tsc"
   },
   "files": [
-    "dist/**/*.js"
+    "dist/**/*"
   ],
   "devDependencies": {
     "chai": "^4.1.2",

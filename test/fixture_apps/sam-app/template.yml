@@ -27,6 +27,33 @@ Resources:
             Path: /hello
             Method: get
 
+  HelloWorldStepFunction:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt HelloWorldStepFunctionRole.Arn
+      DefinitionUri: ./step-functions/hello-world.json
+
+  HelloWorldStepFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: "/"
+      Policies:
+        - PolicyName: HelloWorldStepFunctionAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:invokeFunction
+                Resource: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:*
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: "sts:AssumeRole"
+
 Outputs:
   HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"

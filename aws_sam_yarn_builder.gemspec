@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
   spec.add_dependency "slop", "~> 4.6.0"
-  spec.add_dependency "activesupport", "~> 5.2.2"
+  spec.add_dependency "activesupport", "~> 5.2.0"
 
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"

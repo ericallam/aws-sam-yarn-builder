@@ -144,4 +144,28 @@ class BuildTest < Minitest::Test
     assert !File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/tests/unit/test-handler.js"))
     assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/node_modules/local-file-dependency/package.json"))
   end
+
+  def test_focused_function_with_local_dependency
+    app_name = "sam-app-multiple-functions"
+
+    opts = {
+      destination: fixture_app_path("#{app_name}/.aws-sam"),
+      template_file: fixture_app_path("#{app_name}/template.yml"),
+      function: "FooBarFunction",
+    }
+
+    builder = AwsSamYarnBuilder::Build.new opts
+    builder.build!
+
+    assert !File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/template.yaml"))
+
+    assert !File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/HelloWorldFunction"))
+
+    assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction"))
+    assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/app.js"))
+    assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/package.json"))
+    assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/yarn.lock"))
+    assert !File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/tests/unit/test-handler.js"))
+    assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/node_modules/local-file-dependency/package.json"))
+  end
 end

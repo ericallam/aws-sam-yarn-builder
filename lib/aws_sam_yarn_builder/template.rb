@@ -56,6 +56,12 @@ module AwsSamYarnBuilder
       @function_resources ||= raw_function_resources.map { |name, options| FunctionResource.new(name, options["Properties"]) }
     end
 
+    def function_resource_by_logical_id(logical_id)
+      raw_function_resource = raw_function_resources.detect { |name, options| name == logical_id }
+
+      FunctionResource.new(raw_function_resource.first, raw_function_resource.last["Properties"])
+    end
+
     protected
 
     attr_accessor :contents, :path

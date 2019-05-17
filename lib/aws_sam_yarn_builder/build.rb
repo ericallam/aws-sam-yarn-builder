@@ -5,6 +5,14 @@ module AwsSamYarnBuilder
     end
 
     def build!
+      if options[:function]
+        build_single_function!
+      else
+        build_full_template!
+      end
+    end
+
+    def build_full_template!
       reset_build_dir!
       reset_staging_dir!
 
@@ -26,6 +34,28 @@ module AwsSamYarnBuilder
       template.write_to_output(destination_dir, template_base_dir)
 
       FileUtils.rm_rf(destination_staging_dir)
+    end
+
+    def build_single_function!
+      reset_build_dir!
+      reset_staging_dir!
+
+      function_resource = template.function_resource_by_logical_id(options[:function])
+
+      if function_resource
+        local_dependencies = get_local_file_dependencies(function_resource).flatten.uniq.compact
+
+        local_dependencies.each do |d|
+          d.pack destination_staging_dir
+        end
+
+        package = package_from_function(function_resource)
+
+        package.pack destination_staging_dir
+        package.build function_resource.name, destination_dir, destination_staging_dir
+
+        FileUtils.rm_rf(destination_staging_dir)
+      end
     end
 
     protected

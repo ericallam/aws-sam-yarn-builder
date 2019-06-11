@@ -7,9 +7,35 @@ module AwsSamYarnBuilder
     def build!
       if options[:function]
         build_single_function!
+      elsif options[:unified]
+        build_unified_template!
       else
         build_full_template!
       end
+    end
+
+    def build_unified_template!
+      reset_build_dir!
+      reset_staging_dir!
+
+      local_dependencies = template.function_resources.map do |function|
+        get_local_file_dependencies(function)
+      end.flatten.uniq.compact
+
+      local_dependencies.each do |d|
+        d.pack destination_staging_dir
+      end
+
+      function_resource = template.function_resources.first
+
+      package = package_from_function(function_resource)
+
+      package.pack destination_staging_dir
+      package.build "UnifiedPackage", destination_dir, destination_staging_dir
+
+      template.write_to_output(destination_dir, template_base_dir, true)
+
+      FileUtils.rm_rf(destination_staging_dir)
     end
 
     def build_full_template!

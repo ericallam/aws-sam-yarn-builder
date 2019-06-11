@@ -168,4 +168,31 @@ class BuildTest < Minitest::Test
     assert !File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/tests/unit/test-handler.js"))
     assert File.exist?(fixture_app_path("#{app_name}/.aws-sam/build/FooBarFunction/node_modules/local-file-dependency/package.json"))
   end
+
+  def test_a_multiple_functions_with_one_local_dependency_unified
+    opts = {
+      destination: fixture_app_path("sam-app-unified-package/.aws-sam"),
+      template_file: fixture_app_path("sam-app-unified-package/template.yml"),
+      unified: true
+    }
+
+    builder = AwsSamYarnBuilder::Build.new opts
+    builder.build!
+
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/template.yaml"))
+
+    built_template = YAML.load(File.read(fixture_app_path("sam-app-unified-package/.aws-sam/build/template.yaml")))
+
+    hello_world_resource = built_template["Resources"]["HelloWorldFunction"]
+
+    assert_equal "./UnifiedPackage", hello_world_resource["Properties"]["CodeUri"]
+
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/app.js"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/src/hello-world.js"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/src/foo-bar.js"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/package.json"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/yarn.lock"))
+    assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/node_modules/local-file-dependency/package.json"))
+  end
 end

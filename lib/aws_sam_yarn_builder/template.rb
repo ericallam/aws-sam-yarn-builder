@@ -42,9 +42,9 @@ module AwsSamYarnBuilder
       self.contents = contents
     end
 
-    def write_to_output(output, source_directory)
+    def write_to_output(output, source_directory, unified = false)
       File.open(File.join(output, "template.yaml"), "w+") do |file|
-        file << transformed_contents(source_directory)
+        file << transformed_contents(source_directory, unified)
       end
     end
 
@@ -70,8 +70,8 @@ module AwsSamYarnBuilder
       @document ||= YAML.load(contents)
     end
 
-    def transformed_contents(source_directory)
-      contents_with_transformed_step_function_definitions(contents_with_transformed_function_paths(contents), source_directory)
+    def transformed_contents(source_directory, unified)
+      contents_with_transformed_step_function_definitions(contents_with_transformed_function_paths(contents, unified), source_directory)
     end
 
     def contents_with_transformed_step_function_definitions(c, source_directory)
@@ -84,9 +84,15 @@ module AwsSamYarnBuilder
       File.read(File.expand_path(File.join(source_directory, definition_uri)))
     end
 
-    def contents_with_transformed_function_paths(c)
-      c.gsub(/CodeUri:\s*(.*)/) do |_|
-        "CodeUri: ./#{find_function_name_for_code_uri($1)}"
+    def contents_with_transformed_function_paths(c, unified)
+      if unified
+        c.gsub(/CodeUri:\s*(.*)/) do |_|
+          "CodeUri: ./UnifiedPackage"
+        end
+      else
+        c.gsub(/CodeUri:\s*(.*)/) do |_|
+          "CodeUri: ./#{find_function_name_for_code_uri($1)}"
+        end
       end
     end
 

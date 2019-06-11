@@ -7,7 +7,7 @@ module AwsSamYarnBuilder
     def build!
       if options[:function]
         build_single_function!
-      elsif options[:unified]
+      elsif options[:unified_package]
         build_unified_template!
       else
         build_full_template!

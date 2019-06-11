@@ -173,7 +173,7 @@ class BuildTest < Minitest::Test
     opts = {
       destination: fixture_app_path("sam-app-unified-package/.aws-sam"),
       template_file: fixture_app_path("sam-app-unified-package/template.yml"),
-      unified: true
+      unified_package: true
     }
 
     builder = AwsSamYarnBuilder::Build.new opts

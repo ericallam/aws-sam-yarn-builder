@@ -104,8 +104,8 @@ module AwsSamYarnBuilder
 
     def contents_with_transformed_function_paths(c, unified)
       if unified
-        c.gsub(/CodeUri:\s*(.*)/) do |_|
-          "CodeUri: ./UnifiedPackage"
+        c.gsub(/(\s*)Handler:\s*(.*)/) do |_|
+          "#{$1}Handler: #{$2}#{$1}CodeUri: ./UnifiedPackage"
         end
       else
         c.gsub(/CodeUri:\s*(.*)/) do |_|

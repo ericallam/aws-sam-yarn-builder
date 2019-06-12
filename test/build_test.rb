@@ -185,7 +185,8 @@ class BuildTest < Minitest::Test
 
     hello_world_resource = built_template["Resources"]["HelloWorldFunction"]
 
-    assert_equal "./UnifiedPackage", hello_world_resource["Properties"]["CodeUri"]
+    assert_nil hello_world_resource["Properties"]["CodeUri"]
+    assert_equal "./UnifiedPackage", built_template["Globals"]["Function"]["CodeUri"]
 
     assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage"))
     assert File.exist?(fixture_app_path("sam-app-unified-package/.aws-sam/build/UnifiedPackage/app.js"))

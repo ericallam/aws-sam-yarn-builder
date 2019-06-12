@@ -33,6 +33,20 @@ module AwsSamYarnBuilder
       attr_writer :name
     end
 
+    class FunctionGlobals
+      def initialize(properties = {})
+        self.properties = properties
+      end
+
+      def path
+        properties["CodeUri"]
+      end
+
+      protected
+
+      attr_accessor :properties
+    end
+
     def self.extract_from_file!(file_path)
       new file_path, File.read(file_path)
     end
@@ -60,6 +74,10 @@ module AwsSamYarnBuilder
       raw_function_resource = raw_function_resources.detect { |name, options| name == logical_id }
 
       FunctionResource.new(raw_function_resource.first, raw_function_resource.last["Properties"])
+    end
+
+    def function_globals
+      FunctionGlobals.new(document["Globals"]["Function"])
     end
 
     protected

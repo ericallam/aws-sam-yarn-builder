@@ -18,17 +18,13 @@ module AwsSamYarnBuilder
       reset_build_dir!
       reset_staging_dir!
 
-      local_dependencies = template.function_resources.map do |function|
-        get_local_file_dependencies(function)
-      end.flatten.uniq.compact
+      package = package_from_global_path(template.function_globals.path)
+
+      local_dependencies = package.dependencies.select(&:local?).flatten.uniq.compact
 
       local_dependencies.each do |d|
         d.pack destination_staging_dir
       end
-
-      function_resource = template.function_resources.first
-
-      package = package_from_function(function_resource)
 
       package.pack destination_staging_dir
       package.build "UnifiedPackage", destination_dir, destination_staging_dir
@@ -92,6 +88,10 @@ module AwsSamYarnBuilder
       package = package_from_function(function)
 
       package.dependencies.select(&:local?)
+    end
+
+    def package_from_global_path(path)
+      Package.extract_from_file! File.join(File.expand_path(File.join(template_base_dir, path)), "package.json")
     end
 
     def package_from_function(function)
